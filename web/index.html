@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chip-8 Emulator</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        button {
+            padding: 6px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        button:hover:not(:disabled) {
+            background: #3a3a3a;
+        }
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        canvas {
+            border: 2px solid #333;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chip-8 Emulator</h1>
+
+    <div class="controls">
+        <label for="fileinput">Upload a Chip-8 game:</label>
+        <input type="file" id="fileinput" autocomplete="off" />
+        <button id="reset" disabled>Reset (Backspace)</button>
+    </div>
+
+    <canvas id="canvas">If you see this message, then your browser doesn't support HTML5</canvas>
+
+    <script type="module" src="./index.js"></script>
+</body>
+</html>
