@@ -46,7 +46,6 @@ fn main() {
         return;
     }
 
-    // Инициализация SDL2
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem
@@ -60,7 +59,6 @@ fn main() {
     canvas.clear();
     canvas.present();
 
-    // Инициализация аудио (440 Гц меандр)
     let audio_subsystem = sdl_context.audio().unwrap();
     let desired_spec = AudioSpecDesired {
         freq: Some(44_100),
@@ -81,7 +79,6 @@ fn main() {
     let mut chip8 = Emu::default();
     let mut prev_screen = [false; SCREEN_WIDTH * SCREEN_HEIGHT];
 
-    // Загрузка ROM в память (сохраняем буфер для быстрого рестарта по Backspace)
     let mut rom = File::open(&args[1]).expect("Unable to open file");
     let mut buffer = Vec::new();
     rom.read_to_end(&mut buffer).unwrap();
@@ -130,7 +127,6 @@ fn main() {
         }
         chip8.tick_timers();
 
-        // Управление звуком
         if chip8.is_beeping() {
             audio_device.resume();
         } else {
@@ -139,7 +135,6 @@ fn main() {
 
         draw_screen(&chip8, &mut prev_screen, &mut canvas);
 
-        // Ограничение ровно до 60 FPS
         let elapsed = frame_start.elapsed();
         if elapsed < FRAME_DURATION {
             std::thread::sleep(FRAME_DURATION - elapsed);
