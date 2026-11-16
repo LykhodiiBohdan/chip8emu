@@ -92,7 +92,7 @@ impl Emu {
         }
         if self.st > 0 {
             if self.st == 1 {
-                // Пока без звука, чтобы не падало на todo!()
+                //
             }
             self.st -= 1;
         }
