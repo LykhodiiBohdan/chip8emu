@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CHIP-8 Emulator</title>
+  </head>
+  <body>
+    <h1>CHIP-8 Emulator</h1>
+    <input id="rom" type="file" accept=".ch8,.rom">
+    <button id="reset" type="button">Reset</button>
+    <br>
+    <canvas id="canvas" width="640" height="320"></canvas>
+    <script type="module">
+      import init, { EmuWasm } from "./wasm.js";
+
+      await init();
+      const emulator = new EmuWasm();
+      const canvas = document.getElementById("canvas");
+
+      document.addEventListener("keydown", (event) => emulator.keypress(event, true));
+      document.addEventListener("keyup", (event) => emulator.keypress(event, false));
+      document.getElementById("reset").addEventListener("click", () => emulator.reset());
+      document.getElementById("rom").addEventListener("change", async (event) => {
+        const [file] = event.target.files;
+        if (file) emulator.load_game(new Uint8Array(await file.arrayBuffer()));
+      });
+
+      function frame() {
+        for (let i = 0; i < 15; i++) emulator.tick();
+        emulator.tick_timers();
+        emulator.draw_screen(10);
+        requestAnimationFrame(frame);
+      }
+
+      frame();
+    </script>
+  </body>
+</html>
