@@ -29,6 +29,13 @@ const bgInput = document.getElementById("bgColor");
 const presetSelect = document.getElementById("themePreset");
 const statusBar = document.getElementById("statusBar");
 
+const CODE_TO_KEY = {
+    Digit1: "1", Digit2: "2", Digit3: "3", Digit4: "4",
+    KeyQ: "q",   KeyW: "w",   KeyE: "e",   KeyR: "r",
+    KeyA: "a",   KeyS: "s",   KeyD: "d",   KeyF: "f",
+    KeyZ: "z",   KeyX: "x",   KeyC: "c",   KeyV: "v",
+};
+
 fgInput.value = fg_color;
 bgInput.value = bg_color;
 
@@ -148,17 +155,17 @@ async function run() {
     });
 
     document.addEventListener("keydown", (evt) => {
-        if (evt.key === "Backspace" && current_rom) {
-            evt.preventDefault();
-            start_game(chip8, current_rom);
-            return;
-        }
-        chip8.keypress(evt, true);
-    });
+            if (evt.code === "Backspace" && current_rom) {
+                evt.preventDefault();
+                start_game(chip8, current_rom);
+                return;
+            }
+            handle_key(chip8, evt, true);
+        });
 
-    document.addEventListener("keyup", (evt) => {
-        chip8.keypress(evt, false);
-    });
+        document.addEventListener("keyup", (evt) => {
+            handle_key(chip8, evt, false);
+        });
 
     resetBtn.addEventListener("click", () => {
         if (current_rom) {
@@ -211,6 +218,15 @@ function mainloop(chip8, current_time = 0) {
 
     ctx.fillStyle = fg_color;
     chip8.draw_screen(SCALE);
+}
+
+function handle_key(chip8, evt, pressed) {
+    const mapped = CODE_TO_KEY[evt.code];
+    if (mapped) {
+        chip8.keypress({ key: mapped }, pressed);
+    } else {
+        chip8.keypress(evt, pressed);
+    }
 }
 
 run().catch(console.error);
