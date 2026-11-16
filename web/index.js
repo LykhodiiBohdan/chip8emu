@@ -11,8 +11,8 @@ let last_time = 0;
 let current_rom = null;
 let audio_ctx = null;
 let gain_node = null;
+let drag_counter = 0;
 
-// Загружаем сохранённые цвета или ставим классические чёрно-белые
 let fg_color = localStorage.getItem("chip8_fg") || "#ffffff";
 let bg_color = localStorage.getItem("chip8_bg") || "#000000";
 
@@ -27,6 +27,7 @@ const resetBtn = document.getElementById("reset");
 const fgInput = document.getElementById("fgColor");
 const bgInput = document.getElementById("bgColor");
 const presetSelect = document.getElementById("themePreset");
+const statusBar = document.getElementById("statusBar");
 
 fgInput.value = fg_color;
 bgInput.value = bg_color;
@@ -65,9 +66,57 @@ function init_audio() {
     oscillator.start();
 }
 
+function load_rom_file(chip8, file) {
+    if (!file) return;
+
+    const fr = new FileReader();
+    fr.onload = () => {
+        current_rom = new Uint8Array(fr.result);
+        resetBtn.disabled = false;
+        statusBar.textContent = `Loaded: ${file.name} (${current_rom.length} bytes)`;
+        start_game(chip8, current_rom);
+    };
+    fr.readAsArrayBuffer(file);
+}
+
 async function run() {
     await init();
     const chip8 = new wasm.EmuWasm();
+
+
+    window.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        drag_counter++;
+        document.body.classList.add("drag-over");
+    });
+
+    window.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) {
+            e.dataTransfer.dropEffect = "copy";
+        }
+    });
+
+    window.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        drag_counter--;
+        if (drag_counter <= 0) {
+            drag_counter = 0;
+            document.body.classList.remove("drag-over");
+        }
+    });
+
+    window.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drag_counter = 0;
+        document.body.classList.remove("drag-over");
+
+        const file = e.dataTransfer?.files?.[0];
+        if (file) {
+            input.value = "";
+            load_rom_file(chip8, file);
+        }
+    });
 
     fgInput.addEventListener("input", (e) => {
         presetSelect.value = "custom";
@@ -120,17 +169,7 @@ async function run() {
 
     input.addEventListener("change", (evt) => {
         const file = evt.target.files[0];
-        if (!file) {
-            return;
-        }
-
-        const fr = new FileReader();
-        fr.onload = () => {
-            current_rom = new Uint8Array(fr.result);
-            resetBtn.disabled = false;
-            start_game(chip8, current_rom);
-        };
-        fr.readAsArrayBuffer(file);
+        load_rom_file(chip8, file);
         input.blur();
     }, false);
 }

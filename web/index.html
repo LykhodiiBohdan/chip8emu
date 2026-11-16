@@ -13,6 +13,7 @@
             align-items: center;
             margin-top: 30px;
             gap: 15px;
+            min-height: 90vh;
         }
         .controls {
             display: flex;
@@ -55,17 +56,50 @@
             cursor: pointer;
             padding: 0;
         }
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+        }
         canvas {
+            display: block;
             border: 2px solid #333;
             image-rendering: pixelated;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        body.drag-over canvas {
+            border-color: #00f0ff;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+        }
+        .drop-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            color: #00f0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            border: 2px dashed #00f0ff;
+        }
+        body.drag-over .drop-overlay {
+            opacity: 1;
+        }
+        .status-bar {
+            font-size: 13px;
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <h1>Chip-8 Emulator</h1>
+    <h1>My Chip-8 Emulator</h1>
 
     <div class="controls">
-        <label for="fileinput">Upload a Chip-8 game:</label>
+        <label for="fileinput">Upload or drop a ROM:</label>
         <input type="file" id="fileinput" autocomplete="off" />
         <button id="reset" disabled>Reset (Backspace)</button>
 
@@ -85,7 +119,12 @@
         </div>
     </div>
 
-    <canvas id="canvas">If you see this message, then your browser doesn't support HTML5</canvas>
+    <div class="canvas-wrapper">
+        <canvas id="canvas">If you see this message, then your browser doesn't support HTML5</canvas>
+        <div class="drop-overlay">Drop .ch8 ROM file here</div>
+    </div>
+
+    <div class="status-bar" id="statusBar">Tip: Drag & drop any .ch8 / .rom file anywhere on the page</div>
 
     <script type="module" src="./index.js"></script>
 </body>
