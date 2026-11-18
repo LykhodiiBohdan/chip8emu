@@ -2,126 +2,270 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Chip-8 Emulator</title>
+    <link rel="icon" href="data:,">
     <style>
+        :root {
+            color-scheme: dark;
+            --bg: #121212;
+            --panel: #1a1a1e;
+            --field: #232328;
+            --border: #2c2c32;
+            --border-strong: #3a3a44;
+            --text: #e8e8ea;
+            --muted: #8b8b93;
+            --accent: #00d5e0;
+        }
+        * { box-sizing: border-box; }
         body {
-            background-color: #121212;
-            color: #f0f0f0;
-            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            padding: 28px 16px 40px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 30px;
-            gap: 15px;
-            min-height: 90vh;
+            gap: 16px;
         }
-        .controls {
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .toolbar {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
-        button, select {
-            padding: 6px 12px;
+        button, select, input[type="number"] {
+            font: inherit;
             font-size: 14px;
-            cursor: pointer;
-            background: #2a2a2a;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 4px;
+            color: var(--text);
+            background: var(--field);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
         }
+        button, select { cursor: pointer; }
         button:hover:not(:disabled), select:hover {
-            background: #3a3a3a;
+            background: #2c2c33;
+            border-color: var(--border-strong);
         }
         button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
         }
-        .color-group {
+        #settingsToggle[aria-expanded="true"] {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        .settings {
+            width: min(760px, 100%);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px 28px;
+            padding: 18px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .settings[hidden] { display: none; }
+        .group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .group h2 {
+            margin: 0 0 2px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .field {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: #1e1e1e;
-            padding: 4px 10px;
-            border-radius: 4px;
-            border: 1px solid #333;
+            justify-content: space-between;
+            gap: 14px;
             font-size: 13px;
         }
+        .field select, .field input[type="number"] {
+            padding: 6px 10px;
+        }
+        .field input[type="number"] {
+            width: 92px;
+            text-align: right;
+            -moz-appearance: textfield;
+        }
+        .field input[type="number"]::-webkit-outer-spin-button,
+        .field input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .colors {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .color {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
         input[type="color"] {
-            width: 26px;
-            height: 26px;
-            border: none;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             background: none;
             cursor: pointer;
-            padding: 0;
         }
         .canvas-wrapper {
             position: relative;
-            display: inline-block;
+            line-height: 0;
+            width: min(768px, 100%);
         }
         canvas {
             display: block;
-            border: 2px solid #333;
+            width: 100%;
+            height: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
             image-rendering: pixelated;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            transition: border-color 0.15s;
         }
         body.drag-over canvas {
-            border-color: #00f0ff;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+            border-color: var(--accent);
         }
         .drop-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.72);
-            color: #00f0ff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            border: 2px dashed var(--accent);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.72);
+            color: var(--accent);
+            font-size: 20px;
             font-weight: 600;
             letter-spacing: 0.5px;
-            pointer-events: none;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.15s;
-            border: 2px dashed #00f0ff;
         }
-        body.drag-over .drop-overlay {
-            opacity: 1;
-        }
+        body.drag-over .drop-overlay { opacity: 1; }
         .status-bar {
-            font-size: 13px;
-            color: #888;
+            min-height: 1em;
+            max-width: 720px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--muted);
+            text-align: center;
+        }
+        @media (max-width: 620px) {
+            body { padding-top: 18px; }
+            .settings { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <h1>Chip-8 Emulator</h1>
+    <header>
+        <h1>Chip-8 / Super-CHIP</h1>
+        <div class="subtitle">CHIP-8 · Super-CHIP · XO-CHIP</div>
+    </header>
 
-    <div class="controls">
-        <label for="fileinput">Upload or drop a ROM:</label>
-        <input type="file" id="fileinput" autocomplete="off" />
-        <button id="reset" disabled>Reset (Backspace)</button>
+    <div class="toolbar">
+        <button id="loadBtn" type="button">Load ROM</button>
+        <input type="file" id="fileinput" autocomplete="off" hidden />
+        <button id="reset" type="button" title="Reset (Backspace)" disabled>Reset</button>
+        <button id="settingsToggle" type="button" aria-expanded="false" aria-controls="settings">
+            Settings
+        </button>
+    </div>
 
-        <div class="color-group">
-            <label for="fgColor">Pixel:</label>
-            <input type="color" id="fgColor" value="#ffffff" />
-            <label for="bgColor">Bg:</label>
-            <input type="color" id="bgColor" value="#000000" />
-            <select id="themePreset" title="Color Presets">
-                <option value="custom">Custom</option>
-                <option value="#ffffff|#000000" selected>Classic B&W</option>
-                <option value="#33ff33|#0a1a0a">Green Phosphor</option>
-                <option value="#ffb000|#1a1000">Amber CRT</option>
-                <option value="#9bbc0f|#0f380f">Game Boy</option>
-                <option value="#00f0ff|#0d0221">Cyberpunk</option>
-            </select>
+    <div class="settings" id="settings" hidden>
+        <div class="group">
+            <h2>Emulation</h2>
+            <label class="field" for="modeSelect">
+                <span>Mode</span>
+                <select id="modeSelect">
+                    <option value="auto" selected>Auto (Octo / XO)</option>
+                    <option value="chip8">CHIP-8 (VIP / 1977)</option>
+                    <option value="octo">Octo / XO-CHIP</option>
+                    <option value="schip">Super-CHIP</option>
+                </select>
+            </label>
+            <label class="field" for="speedSelect">
+                <span>Speed</span>
+                <select id="speedSelect">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="1.5">1.5×</option>
+                    <option value="2">2×</option>
+                    <option value="3">3×</option>
+                    <option value="4">4×</option>
+                    <option value="8">8×</option>
+                    <option value="16">16×</option>
+                    <option value="25">25×</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </label>
+            <label class="field" for="cyclesInput">
+                <span>Cycles/frame</span>
+                <input type="number" id="cyclesInput" min="1" max="100000" step="1" value="20"
+                       title="Instructions per 60 Hz frame; 500 and above are supported" />
+            </label>
+        </div>
+
+        <div class="group">
+            <h2>Colors</h2>
+            <div class="colors">
+                <label class="color" for="p1Color">P1 <input type="color" id="p1Color" value="#ffffff" /></label>
+                <label class="color" for="p2Color">P2 <input type="color" id="p2Color" value="#aaaaaa" /></label>
+                <label class="color" for="p3Color">Mix <input type="color" id="p3Color" value="#555555" /></label>
+                <label class="color" for="bgColor">BG <input type="color" id="bgColor" value="#000000" /></label>
+            </div>
+            <label class="field" for="themePreset">
+                <span>Preset</span>
+                <select id="themePreset">
+                    <option value="custom">Custom</option>
+                    <option value="#ffffff|#aaaaaa|#555555|#000000" selected>Classic B&amp;W</option>
+                    <option value="#33ff33|#1f9f1f|#8aff8a|#0a1a0a">Green Phosphor</option>
+                    <option value="#ffb000|#b06f00|#ffd166|#1a1000">Amber CRT</option>
+                    <option value="#9bbc0f|#6f8f0a|#cfe06a|#0f380f">Game Boy</option>
+                    <option value="#00f0ff|#ff2fd6|#8a5cff|#0d0221">Cyberpunk</option>
+                </select>
+            </label>
         </div>
     </div>
 
     <div class="canvas-wrapper">
-        <canvas id="canvas">If you see this message, then your browser doesn't support HTML5</canvas>
-        <div class="drop-overlay">Drop .ch8 ROM file here</div>
+        <canvas id="canvas">Your browser does not support HTML5 canvas.</canvas>
+        <div class="drop-overlay">Drop ROM here</div>
     </div>
 
     <div class="status-bar" id="statusBar"></div>

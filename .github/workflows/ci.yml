@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Core tests
+        run: cargo test --manifest-path chip8_core/Cargo.toml
+
+      - name: Check WASM bindings
+        run: cargo check --manifest-path wasm/Cargo.toml --target wasm32-unknown-unknown
+
+      - name: Check desktop host
+        run: cargo check --manifest-path desktop/Cargo.toml
+
+      - name: Desktop tests
+        run: cargo test --manifest-path desktop/Cargo.toml
+
+      - name: JavaScript syntax
+        run: node --check web/index.js
+
+      - name: XO audio worklet test
+        run: node scripts/test-worklet.mjs
+
+      - name: Fetch chip8-test-suite
+        run: |
+          git clone --depth 1 \
+            https://github.com/Timendus/chip8-test-suite.git \
+            "$RUNNER_TEMP/chip8-test-suite"
+
+      - name: Run chip8-test-suite smoke test
+        env:
+          CHIP8_TEST_SUITE_DIR: ${{ runner.temp }}/chip8-test-suite/bin
+        run: |
+          cargo run --release \
+            --manifest-path chip8_core/Cargo.toml \
+            --example test_suite

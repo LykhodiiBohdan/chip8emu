@@ -12,16 +12,81 @@ export class EmuWasm {
         wasm.__wbg_emuwasm_free(ptr, 0);
     }
     /**
-     * @param {number} scale
+     * The 16-byte XO-CHIP audio pattern buffer.
+     * @returns {Uint8Array}
      */
-    draw_screen(scale) {
-        wasm.emuwasm_draw_screen(this.__wbg_ptr, scale);
+    audio_pattern() {
+        const ret = wasm.emuwasm_audio_pattern(this.__wbg_ptr);
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * @returns {number}
+     */
+    cycles_per_frame() {
+        const ret = wasm.emuwasm_cycles_per_frame(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Render both XO-CHIP planes. `c1` is plane 1, `c2` is plane 2 and
+     * `c3` is the overlap colour. Colours are 0xRRGGBB.
+     * @param {number} scale
+     * @param {number} c1
+     * @param {number} c2
+     * @param {number} c3
+     */
+    draw_screen(scale, c1, c2, c3) {
+        wasm.emuwasm_draw_screen(this.__wbg_ptr, scale, c1, c2, c3);
+    }
+    /**
+     * @returns {number}
+     */
+    get_mode() {
+        const ret = wasm.emuwasm_get_mode(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {string}
+     */
+    halt_reason() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.emuwasm_halt_reason(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
     }
     /**
      * @returns {boolean}
      */
     is_beeping() {
         const ret = wasm.emuwasm_is_beeping(this.__wbg_ptr);
+        return ret !== 0;
+    }
+    /**
+     * @returns {boolean}
+     */
+    is_halted() {
+        const ret = wasm.emuwasm_is_halted(this.__wbg_ptr);
+        return ret !== 0;
+    }
+    /**
+     * @returns {boolean}
+     */
+    is_hi_res() {
+        const ret = wasm.emuwasm_is_hi_res(this.__wbg_ptr);
+        return ret !== 0;
+    }
+    /**
+     * @returns {boolean}
+     */
+    is_schip() {
+        const ret = wasm.emuwasm_is_schip(this.__wbg_ptr);
         return ret !== 0;
     }
     /**
@@ -33,9 +98,11 @@ export class EmuWasm {
     }
     /**
      * @param {Uint8Array} data
+     * @returns {boolean}
      */
     load_game(data) {
-        wasm.emuwasm_load_game(this.__wbg_ptr, data);
+        const ret = wasm.emuwasm_load_game(this.__wbg_ptr, data);
+        return ret !== 0;
     }
     constructor() {
         const ret = wasm.emuwasm_new();
@@ -46,8 +113,30 @@ export class EmuWasm {
         EmuWasmFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
+    /**
+     * XO-CHIP playback pitch. The played bit rate is
+     * `4000 * 2^((pitch - 64) / 48)` Hz.
+     * @returns {number}
+     */
+    pitch() {
+        const ret = wasm.emuwasm_pitch(this.__wbg_ptr);
+        return ret;
+    }
     reset() {
         wasm.emuwasm_reset(this.__wbg_ptr);
+    }
+    /**
+     * @param {number} mode_id
+     */
+    set_mode(mode_id) {
+        wasm.emuwasm_set_mode(this.__wbg_ptr, mode_id);
+    }
+    /**
+     * @returns {boolean}
+     */
+    take_vblank() {
+        const ret = wasm.emuwasm_take_vblank(this.__wbg_ptr);
+        return ret !== 0;
     }
     tick() {
         wasm.emuwasm_tick(this.__wbg_ptr);
@@ -74,13 +163,21 @@ function __wbg_get_imports() {
         __wbg___wbindgen_throw_4c88d8bf264fd984: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
+        __wbg_createElement_de4a31ed2fb252be: function() { return handleError(function (arg0, arg1, arg2) {
+            const ret = arg0.createElement(getStringFromWasm0(arg1, arg2));
+            return ret;
+        }, arguments); },
+        __wbg_createImageData_228bc3f609f748a8: function() { return handleError(function (arg0, arg1, arg2) {
+            const ret = arg0.createImageData(arg1, arg2);
+            return ret;
+        }, arguments); },
         __wbg_document_3b5c3071b43e97ee: function(arg0) {
             const ret = arg0.document;
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
         },
-        __wbg_fillRect_e1f0b9915220348b: function(arg0, arg1, arg2, arg3, arg4) {
-            arg0.fillRect(arg1, arg2, arg3, arg4);
-        },
+        __wbg_drawImage_47077eeae8f1a73d: function() { return handleError(function (arg0, arg1, arg2, arg3, arg4, arg5) {
+            arg0.drawImage(arg1, arg2, arg3, arg4, arg5);
+        }, arguments); },
         __wbg_getContext_d93f904b714852ae: function() { return handleError(function (arg0, arg1, arg2) {
             const ret = arg0.getContext(getStringFromWasm0(arg1, arg2));
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
@@ -91,6 +188,10 @@ function __wbg_get_imports() {
         },
         __wbg_getRandomValues_8b6f1f663e6f188d: function() { return handleError(function (arg0, arg1) {
             globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
+        }, arguments); },
+        __wbg_get_2080c49015e35254: function() { return handleError(function (arg0, arg1) {
+            const ret = Reflect.get(arg0, arg1);
+            return ret;
         }, arguments); },
         __wbg_instanceof_CanvasRenderingContext2d_72a60be8aaadecab: function(arg0) {
             let result;
@@ -106,6 +207,16 @@ function __wbg_get_imports() {
             let result;
             try {
                 result = arg0 instanceof HTMLCanvasElement;
+            } catch (_) {
+                result = false;
+            }
+            const ret = result;
+            return ret;
+        },
+        __wbg_instanceof_Uint8ClampedArray_9fe0171273992aa0: function(arg0) {
+            let result;
+            try {
+                result = arg0 instanceof Uint8ClampedArray;
             } catch (_) {
                 result = false;
             }
@@ -133,8 +244,27 @@ function __wbg_get_imports() {
             const ret = arg0.length;
             return ret;
         },
+        __wbg_length_1e6e6766bd656de2: function(arg0) {
+            const ret = arg0.length;
+            return ret;
+        },
         __wbg_prototypesetcall_13162965d1fe7aa3: function(arg0, arg1, arg2) {
             Uint8Array.prototype.set.call(getArrayU8FromWasm0(arg0, arg1), arg2);
+        },
+        __wbg_putImageData_4c8f5c533216d0a0: function() { return handleError(function (arg0, arg1, arg2, arg3) {
+            arg0.putImageData(arg1, arg2, arg3);
+        }, arguments); },
+        __wbg_set_73c19cb1874a7da4: function(arg0, arg1, arg2) {
+            arg0.set(getArrayU8FromWasm0(arg1, arg2));
+        },
+        __wbg_set_height_ae0610d318c3428c: function(arg0, arg1) {
+            arg0.height = arg1 >>> 0;
+        },
+        __wbg_set_imageSmoothingEnabled_80eb6ec9c323bf88: function(arg0, arg1) {
+            arg0.imageSmoothingEnabled = arg1 !== 0;
+        },
+        __wbg_set_width_5f89a551b5472887: function(arg0, arg1) {
+            arg0.width = arg1 >>> 0;
         },
         __wbg_static_accessor_GLOBAL_THIS_003ee833af9699fc: function() {
             const ret = typeof globalThis === 'undefined' ? undefined : globalThis;
@@ -151,6 +281,11 @@ function __wbg_get_imports() {
         __wbg_static_accessor_WINDOW_b5e0810bfecb7feb: function() {
             const ret = typeof window === 'undefined' ? undefined : window;
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+        },
+        __wbindgen_generic_0000000000000001: function(arg0, arg1) {
+            // Cast intrinsic for `Ref(String) -> Externref`.
+            const ret = getStringFromWasm0(arg0, arg1);
+            return ret;
         },
         __wbindgen_init_externref_table: function() {
             const table = wasm.__wbindgen_externrefs;
